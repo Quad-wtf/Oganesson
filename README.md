@@ -1,6 +1,6 @@
 ![Oganesson Logo](./assets/Oganesson.png)
 
-Oganesson is a free, open-source, cache deleter for Windows, and Linux. (See SYSTEMS.md for further information). It suports a wide range of applications. 
+Oganesson is a free, open-source, cache deleter for Windows, and Linux. (see end of README for further information). It suports a wide range of applications. 
 
 | Version | Support |
 |---------|---------|
@@ -14,13 +14,10 @@ Oganesson is a free, open-source, cache deleter for Windows, and Linux. (See SYS
 
 ## Linux
 
+# Operating systems that Oganesson supports
 
+1. Windows
 
-
-
-
-
-
-
-
-
+2. Linux
+   2.1. ArchLinux
+   2.2. Ubuntu
