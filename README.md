@@ -10,6 +10,13 @@ Oganesson is a free, open-source, cache deleter for Windows, and Linux. (see end
 
 ## Windows
 
+You need to have atleast Python 3.12 installed.
+First, install all the dependencies.
+Colorama:
+```
+  pip install -U colorama
+```
+
 (for me, https://www.youtube.com/watch?v=WlBLnNd2DNU)
 
 ## Linux
@@ -17,14 +24,9 @@ Oganesson is a free, open-source, cache deleter for Windows, and Linux. (see end
 # Operating systems that Oganesson supports
 
 1. Windows
-You need to have atleast Python 3.12 installed.
-First, install all the dependencies.
-Colorama::
 
-  pip install -U colorama
+2. ArchLinux
 
-3. ArchLinux
-
-4. Ubuntu
+3. Ubuntu
 
 For further questions read "FAQ.md"
