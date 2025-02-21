@@ -21,3 +21,5 @@ Oganesson is a free, open-source, cache deleter for Windows, and Linux. (see end
 2. ArchLinux
 
 3. Ubuntu
+
+For further questions read "FAQ.md"
