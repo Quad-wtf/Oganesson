@@ -1,6 +1,6 @@
 ![Oganesson Logo](./assets/Oganesson.png)
 
-Oganesson is a free, open-source, cache deleter for Windows, and Linux. (see end of README for further information). It suports a wide range of applications. 
+Oganesson is a free, open-source, cache deleter for Windows and Linux. (see end of README for further information). It suports a wide range of applications. 
 
 | Version | Support |
 |---------|---------|
@@ -16,10 +16,17 @@ Colorama:
 ```
 pip install -U colorama
 ```
-Then, on GitHub, go to releases, latest stable, scroll donw and click the .exe file. The file will guide you through the installation.
+Then, on GitHub, go to releases, latest stable, scroll down and click the .exe file. The file will guide you through the installation.
 (for me, https://www.youtube.com/watch?v=WlBLnNd2DNU)
 
 ## Linux
+
+# Supported Apps
+Pip,
+MSYS2,
+CapCut,
+npm,
+scoop
 
 # Operating systems that Oganesson supports
 
