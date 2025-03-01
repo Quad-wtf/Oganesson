@@ -10,7 +10,12 @@ apps = [
     "Capcut",
     "npm",
     "scoop",
-    "War Thunder (only if installed on Steam)" 
+    "War Thunder (only if installed on Steam)",
+    "Minecraft",
+    "iTunes",
+    "BakkesMod",
+    "BalenaEtcher",
+    "VSCode"
 ]
 
 def clear_cache(app_name, user_home):
@@ -39,10 +44,18 @@ def clear_cache(app_name, user_home):
     elif app_name == "war thunder":
         paths = [os.path.join("C:", "Program Files (x86)", "Steam", "steamapps", "common", "War Thunder", "cache", "*")]
         if result1.returncode != 0 or result2.returncode != 0:
-            print(f"{Fore.RED}Error clearing Scoop cache: {result1.stderr} {result2.stderr}{Fore.RESET}")
+            print(f"{Fore.RED}Error clearing scoop cache: {result1.stderr} {result2.stderr}{Fore.RESET}")
         else:
-            print(f"{Fore.GREEN}Successfully cleared Scoop cache.{Fore.RESET}")
+            print(f"{Fore.GREEN}Successfully cleared scoop cache.{Fore.RESET}")
         return
+    elif app_name == "minecraft":
+        paths = [os.path.join(user_home, "AppData", "Roaming", ".minecraft", ".cache", "*")]
+    elif app_name == "balenaetcher":
+        paths = [os.path.join(user_home, "AppData", "Roaming", "balenaEtcher", "Cache")]
+    elif app_name == "vscode":
+        paths = [os.path.join(user_home, "AppData", "Roaming", "Code", "Cache", "*")]
+    elif app_name == "itunes":
+        paths = os.path.join(user_home, "AppData", "Local", "Apple", "Apple Software Update", "DistCache", "*")
     else:
         print(f"{Fore.RED}App '{app_name}' is not supported.{Fore.RESET}")
         return
@@ -81,6 +94,9 @@ def main():
                 os.path.join(user_home, "AppData", "Local", "CrashDumps", "*"),
                 os.path.join(user_home, "AppData", "Local", "Temp", "*"),
                 os.path.join(user_home, ".cache", "*"),
+                os.path.join(user_home, "AppData", "Roaming", "3dat-game-lobby-gg", "Cache", "*"),
+                os.path.join(user_home, "AppData", "Roaming", "3dat-game-lobby-gg", "logs", "*"),
+                os.path.join(user_home, "AppData", "Roaming", "3dat-game-lobby-gg", "Code Cache", "*"),
                 "C:\\Windows\\Prefetch\\*",
                 "C:\\Windows\\SoftwareDistribution\\Download\\*"
             ]
