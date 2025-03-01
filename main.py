@@ -25,9 +25,9 @@ def clear_cache(app_name, user_home):
     elif app_name == "pip":
         result = subprocess.run(["pip", "cache", "purge"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if result.returncode != 0:
-            print(Fore.RED + f"Error deleting Pip cache: {result.stderr}" + Style.RESET_ALL)
+            print(f"{Fore.RED}Error deleting Pip cache: {result.stderr}{Fore.RESET}")
         else:
-            print(Fore.GREEN + "Successfully cleared Pip cache." + Style.RESET_ALL)
+            print(f"{Fore.GREEN}Successfully cleared Pip cache.{Fore.RESET}")
         return  # Prevents running the `for` loop
     elif app_name == "msys2":
         paths = [os.path.join("C:", "msys64", "var", "cache", "pacman", "pkg", "*")]
@@ -38,14 +38,13 @@ def clear_cache(app_name, user_home):
         result2 = subprocess.run(["scoop", "cache", "rm", "*"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     elif app_name == "war thunder":
         paths = [os.path.join("C:", "Program Files (x86)", "Steam", "steamapps", "common", "War Thunder", "cache", "*")]
-        
         if result1.returncode != 0 or result2.returncode != 0:
-            print(Fore.RED + f"Error clearing Scoop cache: {result1.stderr} {result2.stderr}" + Style.RESET_ALL)
+            print(f"{Fore.RED}Error clearing Scoop cache: {result1.stderr} {result2.stderr}{Fore.RESET}")
         else:
-            print(Fore.GREEN + "Successfully cleared Scoop cache." + Style.RESET_ALL)
+            print(f"{Fore.GREEN}Successfully cleared Scoop cache.{Fore.RESET}")
         return
     else:
-        print(Fore.YELLOW + f"App '{app_name}' is not supported." + Style.RESET_ALL)
+        print(f"{Fore.RED}App '{app_name}' is not supported.{Fore.RESET}")
         return
 
     # Process file deletion for paths
@@ -54,26 +53,26 @@ def clear_cache(app_name, user_home):
         result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         if result.returncode != 0:
-            print(Fore.RED + f"Error deleting files at {path}: {result.stderr}" + Style.RESET_ALL)
+            print(f"{Fore.RED}Error deleting files at {path}: {result.stderr}{Fore.RESET}")
         else:
-            print(Fore.GREEN + f"Successfully deleted files at {path}" + Style.RESET_ALL)
+            print(f"{Fore.GREEN}Successfully deleted files at {path}{Fore.RESET}")
 
 def main():
     user_home = os.path.expandvars("%USERPROFILE%")  # Gets C:\Users\CurrentUser
     
     while True:
-        app_name = input(Fore.CYAN + "Enter an app to clear its cache ('done' to delete files, 'exit' to quit, 'help' for supported apps): " + Style.RESET_ALL).strip().lower()
+        app_name = input(f"{Fore.CYAN}Enter an app to clear its cache ('done' to delete files, 'exit' to quit, 'help' for supported apps): {Fore.RESET}").strip().lower()
 
         if not app_name:
-            print(Fore.RED + "Invalid input. Please enter an app name or a command." + Style.RESET_ALL)
+            print(f"{Fore.RED}Invalid input. Please enter an app name or a command.{Style.RESET_ALL}")
             continue
 
         if app_name == "exit":
-            print(Fore.YELLOW + "Exiting program." + Style.RESET_ALL)
+            print(f"{Fore.YELLOW}Exiting program.{Fore.RESET}")
             break
 
         if app_name == "help":
-            print(Fore.BLUE + "Supported apps: " + ", ".join(apps) + Style.RESET_ALL)
+            print(f"{Fore.BLUE}Supported apps: {Style.RESET_ALL}".join(apps))
             continue
 
         if app_name == "done":
@@ -89,7 +88,7 @@ def main():
             for temp_path in temp_paths:
                 os.system(f'del /f /q "{temp_path}"')
             
-            print(Fore.GREEN + "Temp files cleared." + Style.RESET_ALL)
+            print(f"{Fore.GREEN}Temporary files cleared.{Fore.RESET}")
             exit(0)
 
         clear_cache(app_name, user_home)
