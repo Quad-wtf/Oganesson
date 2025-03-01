@@ -1,8 +1,6 @@
 import subprocess
 import os
 from packages.colorama import Fore, Style
-from operating.linux.ubuntu import Ubuntu
-from operating.linux.arch import Arch
 
 apps = [
     "Pip",
@@ -18,60 +16,62 @@ apps = [
     "VSCode"
 ]
 
+deferred_paths = []
+
 def clear_cache(app_name, user_home):
-    """ Deletes cache files for the specified application. """
+    """ Adds cache file paths for the specified application to deferred_paths. """
+    global deferred_paths
     
     if app_name == "capcut":
-        paths = [
+        deferred_paths.extend([
             os.path.join(user_home, "AppData", "Local", "CapCut", "User Data", "Log", "alog", "log", "*"),
             os.path.join(user_home, "AppData", "Local", "CapCut", "User Data", "Log", "alog", "cache", "*"),
             os.path.join(user_home, "AppData", "Local", "CapCut", "User Data", "Cache", "*")
-        ]
+        ])
     elif app_name == "pip":
-        result = subprocess.run(["pip", "cache", "purge"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        if result.returncode != 0:
-            print(f"{Fore.RED}Error deleting Pip cache: {result.stderr}{Fore.RESET}")
-        else:
-            print(f"{Fore.GREEN}Successfully cleared Pip cache.{Fore.RESET}")
-        return  # Prevents running the `for` loop
+        deferred_paths.append("pip_cache")
     elif app_name == "msys2":
-        paths = [os.path.join("C:", "msys64", "var", "cache", "pacman", "pkg", "*")]
+        deferred_paths.append(os.path.join("C:", "msys64", "var", "cache", "pacman", "pkg", "*"))
     elif app_name == "npm":
-        paths = [os.path.join(user_home, "AppData", "Local", "npm-cache", "*")]
+        deferred_paths.append(os.path.join(user_home, "AppData", "Local", "npm-cache", "*"))
     elif app_name == "scoop":
-        result1 = subprocess.run(["scoop", "cleanup", "*"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        result2 = subprocess.run(["scoop", "cache", "rm", "*"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        deferred_paths.append("scoop_cache")
     elif app_name == "war thunder":
-        paths = [os.path.join("C:", "Program Files (x86)", "Steam", "steamapps", "common", "War Thunder", "cache", "*")]
-        if result1.returncode != 0 or result2.returncode != 0:
-            print(f"{Fore.RED}Error clearing scoop cache: {result1.stderr} {result2.stderr}{Fore.RESET}")
-        else:
-            print(f"{Fore.GREEN}Successfully cleared scoop cache.{Fore.RESET}")
-        return
+        deferred_paths.append(os.path.join("C:", "Program Files (x86)", "Steam", "steamapps", "common", "War Thunder", "cache", "*"))
     elif app_name == "minecraft":
-        paths = [os.path.join(user_home, "AppData", "Roaming", ".minecraft", ".cache", "*")]
+        deferred_paths.append(os.path.join(user_home, "AppData", "Roaming", ".minecraft", ".cache", "*"))
     elif app_name == "balenaetcher":
-        paths = [os.path.join(user_home, "AppData", "Roaming", "balenaEtcher", "Cache")]
+        deferred_paths.append(os.path.join(user_home, "AppData", "Roaming", "balenaEtcher", "Cache", "*"))
     elif app_name == "vscode":
-        paths = [os.path.join(user_home, "AppData", "Roaming", "Code", "Cache", "*")]
+        deferred_paths.append(os.path.join(user_home, "AppData", "Roaming", "Code", "Cache", "*"))
     elif app_name == "itunes":
-        paths = os.path.join(user_home, "AppData", "Local", "Apple", "Apple Software Update", "DistCache", "*")
+        deferred_paths.append(os.path.join(user_home, "AppData", "Local", "Apple", "Apple Software Update", "DistCache", "*"))
     else:
         print(f"{Fore.RED}App '{app_name}' is not supported.{Fore.RESET}")
         return
+    
+    print(f"{Fore.YELLOW}Added cache paths for {app_name} to the cleanup list.{Fore.RESET}")
 
-    # Process file deletion for paths
-    for path in paths:
-        command = f'del /f /q "{path}"'  # Wrap in quotes to handle spaces
-        result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
-        if result.returncode != 0:
-            print(f"{Fore.RED}Error deleting files at {path}: {result.stderr}{Fore.RESET}")
+def delete_deferred_paths():
+    """ Deletes all paths stored in deferred_paths. """
+    global deferred_paths
+    
+    for path in deferred_paths:
+        if path == "pip_cache":
+            subprocess.run(["pip", "cache", "purge"], shell=True)
+            print(f"{Fore.GREEN}Successfully cleared Pip cache.{Fore.RESET}")
+        elif path == "scoop_cache":
+            subprocess.run(["scoop", "cleanup", "*"], shell=True)
+            subprocess.run(["scoop", "cache", "rm", "*"], shell=True)
+            print(f"{Fore.GREEN}Successfully cleared scoop cache.{Fore.RESET}")
         else:
-            print(f"{Fore.GREEN}Successfully deleted files at {path}{Fore.RESET}")
+            subprocess.run(f'del /f /q "{path}"', shell=True)
+            print(f"{Fore.GREEN}Deleted files at {path}{Fore.RESET}")
+    
+    deferred_paths.clear()
 
 def main():
-    user_home = os.path.expandvars("%USERPROFILE%")  # Gets C:\Users\CurrentUser
+    user_home = os.path.expandvars("%USERPROFILE%")
     
     while True:
         app_name = input(f"{Fore.CYAN}Enter an app to clear its cache ('done' to delete files, 'exit' to quit, 'help' for supported apps): {Fore.RESET}").strip().lower()
@@ -85,27 +85,20 @@ def main():
             break
 
         if app_name == "help":
-            print(f"{Fore.BLUE}Supported apps: {Style.RESET_ALL}".join(apps))
+            print(f"{Fore.BLUE}Supported apps: {', '.join(apps)}{Style.RESET_ALL}")
             continue
 
         if app_name == "done":
-            temp_paths = [
+            deferred_paths.extend([
                 "C:\\Windows\\Temp\\*",
                 os.path.join(user_home, "AppData", "Local", "CrashDumps", "*"),
                 os.path.join(user_home, "AppData", "Local", "Temp", "*"),
                 os.path.join(user_home, ".cache", "*"),
-                os.path.join(user_home, "AppData", "Roaming", "3dat-game-lobby-gg", "Cache", "*"),
-                os.path.join(user_home, "AppData", "Roaming", "3dat-game-lobby-gg", "logs", "*"),
-                os.path.join(user_home, "AppData", "Roaming", "3dat-game-lobby-gg", "Code Cache", "*"),
                 "C:\\Windows\\Prefetch\\*",
                 "C:\\Windows\\SoftwareDistribution\\Download\\*"
-            ]
-            
-            for temp_path in temp_paths:
-                os.system(f'del /f /q "{temp_path}"')
-            
-            print(f"{Fore.GREEN}Temporary files cleared.{Fore.RESET}")
-            exit(0)
+            ])
+            delete_deferred_paths()
+            continue
 
         clear_cache(app_name, user_home)
 
