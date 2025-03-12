@@ -1,6 +1,5 @@
 import os
 import subprocess
-import sys
 from packages.colorama import init, Fore, Style
 
 class CacheCleaner:
@@ -8,7 +7,7 @@ class CacheCleaner:
         init(autoreset=True)  # Initialize colorama to work properly in Windows terminal
         self.user_home = os.path.expandvars("%USERPROFILE%")
         self.deferred_paths = []
-        self.allowed_extensions = [".txt", ".log", ".zip", ".tar.gz"]  # Files with these extensions will be deleted
+        self.allowed_extensions = [".log"]  # Only delete .log files
         self.apps = {
             "pip": ["pip_cache"],
             "msys2": [os.path.join("C:", "msys64", "var", "cache", "pacman", "pkg", "*")],
@@ -36,29 +35,41 @@ class CacheCleaner:
     def delete_deferred_paths(self):
         for path in self.deferred_paths:
             if path == "pip_cache":
-                subprocess.run(["pip", "cache", "purge"], shell=True)
-                print(f"{Fore.GREEN}Successfully cleared Pip cache.{Fore.RESET}")
+                try:
+                    subprocess.run(["pip", "cache", "purge"], shell=True, check=True)
+                    print(f"{Fore.GREEN}Successfully cleared Pip cache.{Fore.RESET}")
+                except subprocess.CalledProcessError:
+                    print(f"{Fore.RED}Failed to clear Pip cache.{Fore.RESET}")
             elif path == "scoop_cache":
-                subprocess.run(["scoop", "cleanup", "*"], shell=True)
-                subprocess.run(["scoop", "cache", "rm", "*"], shell=True)
-                print(f"{Fore.GREEN}Successfully cleared scoop cache.{Fore.RESET}")
+                try:
+                    subprocess.run(["scoop", "cleanup", "*"], shell=True, check=True)
+                    subprocess.run(["scoop", "cache", "rm", "*"], shell=True, check=True)
+                    print(f"{Fore.GREEN}Successfully cleared scoop cache.{Fore.RESET}")
+                except subprocess.CalledProcessError:
+                    print(f"{Fore.RED}Failed to clear Scoop cache.{Fore.RESET}")
             else:
-                subprocess.run(f'del /f /q "{path}"', shell=True)
-                print(f"{Fore.GREEN}Deleted files at {path}{Fore.RESET}")
+                try:
+                    subprocess.run(f'del /f /q "{path}"', shell=True, check=True)
+                    print(f"{Fore.GREEN}Deleted files at {path}{Fore.RESET}")
+                except subprocess.CalledProcessError:
+                    print(f"{Fore.RED}Failed to delete files at {path}{Fore.RESET}")
         self.deferred_paths.clear()
 
-    def delete_log_and_txt_files(self, directory):
+    def delete_specific_log_files(self, directory):
         for root, _, files in os.walk(directory):
             for file in files:
-                # Check if the file ends with one of the allowed extensions
-                if not any(file.endswith(ext) for ext in self.allowed_extensions):
-                    continue  # Skip files that don't have .txt or .log extensions
-                file_path = os.path.join(root, file)
-                try:
-                    os.remove(file_path)
-                    print(f"Deleted: {file_path}")
-                except Exception as e:
-                    print(f"Error deleting {file_path}: {e}")
+                filename, extension = os.path.splitext(file)
+
+                # Check if the file has a .log extension
+                if extension.lower() == ".log":
+                    file_path = os.path.join(root, file)
+                    try:
+                        os.remove(file_path)
+                        print(f"{Fore.GREEN}Deleted: {file_path}{Fore.RESET}")
+                    except PermissionError:
+                        print(f"{Fore.RED}Permission error, skipping: {file_path}{Fore.RESET}")
+                    except Exception as e:
+                        print(f"{Fore.RED}Error deleting {file_path}: {str(e)}{Fore.RESET}")
 
     def run(self):
         while True:
@@ -86,7 +97,7 @@ class CacheCleaner:
                     "C:\\Windows\\SoftwareDistribution\\Download\\*"
                 ])
                 self.delete_deferred_paths()
-                self.delete_log_and_txt_files("C:\\")
+                self.delete_specific_log_files("C:\\")
                 continue
 
             self.add_cache_paths(app_name)
