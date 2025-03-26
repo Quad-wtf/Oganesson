@@ -4,10 +4,10 @@ from packages.colorama import init, Fore, Style
 
 class CacheCleaner:
     def __init__(self):
-        init(autoreset=True)  # Initialize colorama to work properly in Windows terminal
+        init(autoreset=True)
         self.user_home = os.path.expandvars("%USERPROFILE%")
         self.deferred_paths = []
-        self.allowed_extensions = [".log"]  # Only delete .log files
+        self.allowed_extensions = [".log"]
         self.apps = {
             "pip": ["pip_cache"],
             "msys2": [os.path.join("C:", "msys64", "var", "cache", "pacman", "pkg", "*")],
@@ -25,6 +25,20 @@ class CacheCleaner:
             "itunes": [os.path.join(self.user_home, "AppData", "Local", "Apple", "Apple Software Update", "DistCache", "*")]
         }
 
+    def get_size(self, path):
+        total_size = 0
+        if os.path.isfile(path):
+            return os.path.getsize(path)
+        elif os.path.isdir(path):
+            for dirpath, _, filenames in os.walk(path):
+                for file in filenames:
+                    file_path = os.path.join(dirpath, file)
+                    try:
+                        total_size += os.path.getsize(file_path)
+                    except OSError:
+                        pass
+        return total_size
+
     def add_cache_paths(self, app_name):
         if app_name in self.apps:
             self.deferred_paths.extend(self.apps[app_name])
@@ -33,7 +47,9 @@ class CacheCleaner:
             print(f"{Fore.RED}App '{app_name}' is not supported.{Fore.RESET}")
 
     def delete_deferred_paths(self):
+        total_reclaimed = 0
         for path in self.deferred_paths:
+            size_before = self.get_size(path)
             if path == "pip_cache":
                 try:
                     subprocess.run(["pip", "cache", "purge"], shell=True, check=True)
@@ -53,14 +69,15 @@ class CacheCleaner:
                     print(f"{Fore.GREEN}Deleted files at {path}{Fore.RESET}")
                 except subprocess.CalledProcessError:
                     print(f"{Fore.RED}Failed to delete files at {path}{Fore.RESET}")
+            total_reclaimed += size_before
+        
+        print(f"{Fore.GREEN}Total space reclaimed: {total_reclaimed / (1024 * 1024):.2f} MB{Fore.RESET}")
         self.deferred_paths.clear()
 
     def delete_specific_log_files(self, directory):
         for root, _, files in os.walk(directory):
             for file in files:
                 filename, extension = os.path.splitext(file)
-
-                # Check if the file has a .log extension
                 if extension.lower() == ".log":
                     file_path = os.path.join(root, file)
                     try:
@@ -74,33 +91,25 @@ class CacheCleaner:
     def run(self):
         while True:
             app_name = input(f"{Fore.CYAN}Enter an app to clear its cache ('done' to delete files, 'exit' to quit, 'help' for supported apps): {Fore.RESET}").strip().lower()
-            
-            if not app_name:
-                print(f"{Fore.RED}Invalid input. Please enter an app name or a command.{Style.RESET_ALL}")
-                continue
-
             if app_name == "exit":
                 print(f"{Fore.YELLOW}Exiting program.{Fore.RESET}")
                 break
-
-            if app_name == "help":
+            elif app_name == "help":
                 print(f"{Fore.BLUE}Supported apps: {', '.join(self.apps.keys())}{Style.RESET_ALL}")
-                continue
-
-            if app_name == "done":
-                self.deferred_paths.extend([ 
-                    "C:\\Windows\\Temp\\*", 
-                    os.path.join(self.user_home, "AppData", "Local", "CrashDumps", "*"), 
-                    os.path.join(self.user_home, "AppData", "Local", "Temp", "*"), 
-                    os.path.join(self.user_home, ".cache", "*"), 
-                    "C:\\Windows\\Prefetch\\*", 
+            elif app_name == "done":
+                self.deferred_paths.extend([
+                    "C:\\Windows\\Temp\\*",
+                    os.path.join(self.user_home, "AppData", "Local", "CrashDumps", "*"),
+                    os.path.join(self.user_home, "AppData", "Local", "Temp", "*"),
+                    os.path.join(self.user_home, ".cache", "*"),
+                    "C:\\Windows\\Prefetch\\*",
                     "C:\\Windows\\SoftwareDistribution\\Download\\*"
                 ])
                 self.delete_deferred_paths()
                 self.delete_specific_log_files("C:\\")
-                continue
-
-            self.add_cache_paths(app_name)
+                break
+            else:
+                self.add_cache_paths(app_name)
 
 if __name__ == "__main__":
     cleaner = CacheCleaner()
