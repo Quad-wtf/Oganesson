@@ -13,7 +13,6 @@
 - Deleted packages/, from now on install the colorama module through pip.
 
 ### Fixed
-- Path like "C:\\Windows\\Temp\\* didn't expand, from now on using `blob` module.
 - Formatting
 
 Overall, really big update. 
